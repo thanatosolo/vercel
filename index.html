@@ -32,6 +32,7 @@
     border: 2px solid #c9dcf3; border-radius: 12px; outline:none; background:#f4f9ff;
   }
   .boxes input:focus { border-color:#1e90ff; background:#fff; }
+  .boxes input.err { border-color:#e0555d; }
   .result { margin-top: 26px; }
   .stat { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
   .stat .box {
@@ -110,12 +111,32 @@
     inputs[0].focus();
   }
 
+  function showMsg(t){ msg.textContent=t; msg.className='msg '+(t?'err':''); }
+  function showResult(html){ result.innerHTML=html; result.style.display='block'; }
+
+  function clearIdBoxes(){
+    idcVal='';
+    ['i0','i1','i2','i3'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('i0').focus();
+  }
+
   bind(['i0','i1','i2','i3'], function(val){
     idcVal = val;
     if(val.length === 4){
-      sId.classList.remove('active');
-      sPhone.classList.add('active');
-      setTimeout(function(){ document.getElementById('p0').focus(); }, 50);
+      showMsg('');
+      fetch('/api/check?idc='+encodeURIComponent(val))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if(d.found){
+            sId.classList.remove('active');
+            sPhone.classList.add('active');
+            setTimeout(function(){ document.getElementById('p0').focus(); }, 50);
+          } else {
+            showMsg('ID 错误');
+            clearIdBoxes();
+          }
+        })
+        .catch(function(){ showMsg('网络异常'); clearIdBoxes(); });
     }
   });
 
@@ -123,9 +144,6 @@
     phoneVal = val;
     if(val.length === 4){ doQuery(idcVal, val); }
   });
-
-  function showMsg(t){ msg.textContent=t; msg.className='msg '+(t?'err':''); }
-  function showResult(html){ result.innerHTML=html; result.style.display='block'; }
 
   function doQuery(v1, v2){
     fetch('/api/query?idc='+encodeURIComponent(v1)+'&phone='+encodeURIComponent(v2))
