@@ -29,7 +29,8 @@
     background:#3a3f47; color:#fff; font-weight:600;
   }
   button:active { opacity:0.85; }
-  button.mini { padding:6px 10px; font-size:12px; background:#eef0f3; color:#4a5261; width:100%; }
+  button.mini { padding:6px 10px; font-size:12px; background:#eef0f3; color:#4a5261; }
+  button.tiny { padding:3px 8px; font-size:11px; background:#eef0f3; color:#4a5261; width:auto; }
   button.del { background:#fbecec; color:#c0392b; }
   button.green { background:#2f6e49; }
   .msg { text-align:center; font-size:13px; margin-top:8px; min-height:16px; color:#d64545; }
@@ -42,13 +43,16 @@
   th .arrow { font-size:10px; color:#2f6e49; }
   td.num { color:#22262c; font-weight:600; white-space:nowrap; }
   td.remain { color:#2f6e49; font-weight:700; white-space:nowrap; }
-  td.ops { width:80px; }
-  .ops-col { display:flex; flex-direction:column; gap:6px; }
+  .td-total { text-align:left; }
+  .change-total { display:block; margin-top:4px; }
+  td.ops { width:64px; }
   .form-row { display:flex; gap:8px; flex-wrap:wrap; }
   .form-row input, .form-row select { flex:1 1 120px; margin-bottom:10px; }
   .form-row button { flex:0 0 auto; }
-  .row-item { display:flex; justify-content:space-between; align-items:center; padding:9px 4px; border-bottom:1px solid #eef0f3; font-size:13px; color:#3a3f47; }
+  .row-item { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 4px; border-bottom:1px solid #eef0f3; font-size:13px; color:#3a3f47; }
   .row-item:last-child { border-bottom:none; }
+  .row-item .info { flex:1 1 auto; min-width:0; }
+  .row-item .del-btn { flex:0 0 auto; }
   .empty { text-align:center; color:#9aa2ad; font-size:13px; padding:14px; }
   .tag { font-size:13px; font-weight:700; letter-spacing:1px; color:#3a3f47; margin-bottom:12px; }
   .toggle { cursor:pointer; user-select:none; display:flex; justify-content:space-between; align-items:center; }
@@ -71,7 +75,7 @@
   <div id="admin-view" style="display:none;">
     <div class="head">
       <div class="title">休假系统管理</div>
-      <button class="mini" id="logout" style="width:auto;">退出</button>
+      <button class="mini" id="logout">退出</button>
     </div>
 
     <div class="card">
@@ -206,13 +210,11 @@
     arr.forEach(function(s){
       html += '<tr>' +
         '<td>' + s.name + '</td>' +
-        '<td class="num">' + s.total_days + '</td>' +
+        '<td class="num td-total">' + s.total_days +
+          '<button class="tiny change-total" data-act="total" data-name="'+s.name+'">改天数</button></td>' +
         '<td class="num">' + s.used_days + '</td>' +
         '<td class="remain">' + s.remain_days + '</td>' +
-        '<td class="ops"><div class="ops-col">' +
-          '<button class="mini" data-act="total" data-name="'+s.name+'">改天数</button>' +
-          '<button class="mini" data-act="leaves" data-name="'+s.name+'">看休假</button>' +
-        '</div></td>' +
+        '<td class="ops"><button class="mini" data-act="leaves" data-name="'+s.name+'">看休假</button></td>' +
         '</tr>';
     });
     html += '</table>';
@@ -310,8 +312,8 @@
       if(!ls.length){ leavesList.innerHTML = '<div class="empty">暂无记录</div>'; return; }
       var html = '';
       ls.forEach(function(l){
-        html += '<div class="row-item"><span>' + l.leave_date + (l.note ? ' · ' + l.note : '') + ' · ' + l.days + '天</span>' +
-          '<button class="mini del" data-del="' + l.id + '">删除</button></div>';
+        html += '<div class="row-item"><span class="info">' + l.leave_date + (l.note ? ' · ' + l.note : '') + ' · ' + l.days + '天</span>' +
+          '<button class="mini del tiny del-btn" data-del="' + l.id + '">删</button></div>';
       });
       leavesList.innerHTML = html;
     });
