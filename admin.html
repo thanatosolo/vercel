@@ -32,6 +32,7 @@
   button.mini { padding:6px 10px; font-size:12px; background:#eef0f3; color:#4a5261; }
   button.tiny { padding:3px 8px; font-size:11px; background:#eef0f3; color:#4a5261; width:auto; }
   button.del { background:#fbecec; color:#c0392b; }
+  .del-btn { padding:5px 14px; font-size:12px; }
   button.green { background:#2f6e49; }
   .msg { text-align:center; font-size:13px; margin-top:8px; min-height:16px; color:#d64545; }
   .msg.ok { color:#2f6e49; }
@@ -43,9 +44,9 @@
   th .arrow { font-size:10px; color:#2f6e49; }
   td.num { color:#22262c; font-weight:600; white-space:nowrap; }
   td.remain { color:#2f6e49; font-weight:700; white-space:nowrap; }
-  .td-total { text-align:left; }
-  .change-total { display:block; margin-top:4px; }
-  td.ops { width:64px; }
+  .td-total { white-space:nowrap; }
+  .change-total { display:inline-block; margin-left:6px; vertical-align:middle; }
+  td.ops { width:64px; white-space:nowrap; }
   .form-row { display:flex; gap:8px; flex-wrap:wrap; }
   .form-row input, .form-row select { flex:1 1 120px; margin-bottom:10px; }
   .form-row button { flex:0 0 auto; }
@@ -214,7 +215,7 @@
           '<button class="tiny change-total" data-act="total" data-name="'+s.name+'">改天数</button></td>' +
         '<td class="num">' + s.used_days + '</td>' +
         '<td class="remain">' + s.remain_days + '</td>' +
-        '<td class="ops"><button class="mini" data-act="leaves" data-name="'+s.name+'">看休假</button></td>' +
+        '<td class="ops"><button class="mini" data-act="leaves" data-name="'+s.name+'">查看</button></td>' +
         '</tr>';
     });
     html += '</table>';
@@ -313,7 +314,7 @@
       var html = '';
       ls.forEach(function(l){
         html += '<div class="row-item"><span class="info">' + l.leave_date + (l.note ? ' · ' + l.note : '') + ' · ' + l.days + '天</span>' +
-          '<button class="mini del tiny del-btn" data-del="' + l.id + '">删</button></div>';
+          '<button class="del del-btn" data-del="' + l.id + '">删</button></div>';
       });
       leavesList.innerHTML = html;
     });
