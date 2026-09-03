@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>员工休假查询</title>
+<title>查询</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
@@ -14,117 +14,96 @@
     padding: 16px;
   }
   .card {
-    width: 100%; max-width: 420px;
+    width: 100%; max-width: 380px;
     background: rgba(255,255,255,0.96);
     border-radius: 20px;
-    padding: 28px 24px;
+    padding: 40px 28px;
     box-shadow: 0 12px 40px rgba(10,77,163,0.35);
   }
-  .logo { text-align:center; margin-bottom: 20px; }
-  .logo .title { font-size: 22px; font-weight: 700; color:#0a4da3; }
-  .logo .sub { font-size: 13px; color:#7a8ba6; margin-top:6px; }
-  .field { margin-bottom: 16px; }
-  .field label { display:block; font-size: 14px; color:#2b3a55; margin-bottom:8px; }
+  .field { display:none; }
+  .field.active { display:block; }
+  .field .tag {
+    font-size: 15px; font-weight: 700; letter-spacing: 2px; color:#0a4da3;
+    text-align:center; margin-bottom: 12px;
+  }
   .field input {
-    width:100%; padding: 14px; font-size: 20px; text-align:center; letter-spacing: 6px;
-    border: 2px solid #c9dcf3; border-radius: 10px; outline:none;
-    color:#0a4da3; background:#f4f9ff;
+    width:100%; padding: 16px 0; font-size: 30px; text-align:center; letter-spacing: 12px;
+    border:none; border-bottom: 2px solid #c9dcf3; outline:none; color:#0a4da3; background:transparent;
   }
-  .field input:focus { border-color:#1e90ff; }
-  .field input:disabled { background:#eef2f7; color:#9aa7b8; }
-  .btn {
-    width:100%; padding: 14px; font-size: 16px; font-weight:600; color:#fff;
-    background: linear-gradient(90deg,#0a4da3,#1e90ff);
-    border:none; border-radius: 10px; cursor:pointer;
-  }
-  .btn:active { opacity:0.85; }
-  .btn:disabled { opacity:0.5; }
-  .result { margin-top: 22px; }
-  .stat { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+  .field input:focus { border-bottom-color:#1e90ff; }
+  .result { margin-top: 26px; }
+  .stat { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
   .stat .box {
-    flex:1 1 90px; background:#f4f9ff; border-radius:12px; padding:12px 8px; text-align:center;
+    flex:1 1 90px; background:#f4f9ff; border-radius:12px; padding:14px 8px; text-align:center;
   }
-  .stat .box .num { font-size: 22px; font-weight:700; color:#0a4da3; }
+  .stat .box .num { font-size: 24px; font-weight:700; color:#0a4da3; }
   .stat .box .lbl { font-size: 12px; color:#7a8ba6; margin-top:4px; }
-  .greet { text-align:center; font-size:16px; font-weight:600; color:#2b3a55; margin-bottom:14px; }
-  .list-title { font-size:14px; font-weight:600; color:#2b3a55; margin-bottom:8px; }
-  .list {
-    border:1px solid #e3eefb; border-radius:10px; overflow:hidden;
-  }
+  .greet { text-align:center; font-size:17px; font-weight:600; color:#2b3a55; margin-bottom:16px; }
+  .list { border:1px solid #e3eefb; border-radius:10px; overflow:hidden; }
   .row {
-    display:flex; justify-content:space-between; padding:10px 14px; font-size:14px; color:#3a4a66;
+    display:flex; justify-content:space-between; padding:11px 14px; font-size:14px; color:#3a4a66;
     border-bottom:1px solid #eef4fb;
   }
   .row:last-child { border-bottom:none; }
   .row .d { color:#0a4da3; font-weight:600; }
-  .empty { text-align:center; color:#9aa7b8; font-size:14px; padding:14px; }
-  .msg { text-align:center; font-size:13px; margin-top:12px; min-height:18px; }
+  .empty { text-align:center; color:#9aa7b8; font-size:14px; padding:16px; }
+  .msg { text-align:center; font-size:13px; margin-top:14px; min-height:18px; }
   .msg.err { color:#e0555d; }
-  .msg.ok { color:#2e9e4f; }
-  .hint { font-size:12px; color:#9aa7b8; text-align:center; margin-top:14px; }
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="logo">
-    <div class="title">员工休假查询</div>
-    <div class="sub">输入身份信息验证后查看休假情况</div>
+  <div class="field active" id="f-id">
+    <div class="tag">ID</div>
+    <input id="idc" inputmode="numeric" maxlength="4" autocomplete="off">
   </div>
-
-  <form id="form">
-    <div class="field">
-      <label>身份证后4位</label>
-      <input id="idc" inputmode="numeric" maxlength="4" placeholder="请输入4位数字" autocomplete="off">
-    </div>
-    <div class="field">
-      <label>手机号后4位</label>
-      <input id="phone" inputmode="numeric" maxlength="4" placeholder="请输入4位数字" autocomplete="off" disabled>
-    </div>
-    <button class="btn" id="btn" type="submit">查 询</button>
-    <div class="msg" id="msg"></div>
-  </form>
-
+  <div class="field" id="f-phone">
+    <div class="tag">MB</div>
+    <input id="phone" inputmode="numeric" maxlength="4" autocomplete="off">
+  </div>
+  <div class="msg" id="msg"></div>
   <div class="result" id="result" style="display:none"></div>
-  <div class="hint">验证通过后显示休假记录</div>
 </div>
 
 <script>
 (function(){
   var idc=document.getElementById('idc');
   var phone=document.getElementById('phone');
+  var fId=document.getElementById('f-id');
+  var fPhone=document.getElementById('f-phone');
   var msg=document.getElementById('msg');
   var result=document.getElementById('result');
-  var form=document.getElementById('form');
-  var btn=document.getElementById('btn');
+  var idcVal='';
 
-  function showMsg(t,cls){ msg.textContent=t; msg.className='msg '+(cls||''); }
+  function showMsg(t){ msg.textContent=t; msg.className='msg '+(t?'err':''); }
   function showResult(html){ result.innerHTML=html; result.style.display='block'; }
-  function clean(){ showMsg('',''); result.style.display='none'; }
+  function clean(){ showMsg(''); result.style.display='none'; }
 
   idc.addEventListener('input',function(){
     idc.value=idc.value.replace(/\D/g,'').slice(0,4);
     clean();
-    if(idc.value.length===4){ phone.disabled=false; phone.focus(); }
-    else phone.disabled=true;
-  });
-  phone.addEventListener('input',function(){
-    phone.value=phone.value.replace(/\D/g,'').slice(0,4); clean();
+    if(idc.value.length===4){
+      idcVal=idc.value;
+      fId.classList.remove('active');
+      fPhone.classList.add('active');
+      phone.focus();
+    }
   });
 
-  form.addEventListener('submit',function(e){
-    e.preventDefault();
-    var v1=idc.value, v2=phone.value;
-    if(v1.length!==4){ showMsg('请先输入身份证后4位','err'); idc.focus(); return; }
-    if(v2.length!==4){ showMsg('请输入手机号后4位','err'); phone.focus(); return; }
-    btn.disabled=true; showMsg('查询中…','');
+  phone.addEventListener('input',function(){
+    phone.value=phone.value.replace(/\D/g,'').slice(0,4);
+    clean();
+    if(phone.value.length===4){ doQuery(idcVal, phone.value); }
+  });
+
+  function doQuery(v1, v2){
     fetch('/api/query?idc='+encodeURIComponent(v1)+'&phone='+encodeURIComponent(v2))
       .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,data:d}; }); })
       .then(function(res){
-        if(!res.ok){ showMsg(res.data.error||'查询失败，请检查信息','err'); return; }
+        if(!res.ok){ showMsg(res.data.error||'查询失败'); return; }
         var d=res.data;
-        showMsg('查询成功','ok');
         var rows='';
-        if(!d.leaves || d.leaves.length===0){ rows='<div class="empty">暂无休假记录</div>'; }
+        if(!d.leaves || d.leaves.length===0){ rows='<div class="empty">暂无记录</div>'; }
         else {
           d.leaves.forEach(function(l){
             rows+='<div class="row"><span>'+l.leave_date+(l.note?' · '+l.note:'')+'</span><span class="d">'+l.days+' 天</span></div>';
@@ -133,17 +112,15 @@
         showResult(
           '<div class="greet">'+d.name+'</div>'+
           '<div class="stat">'+
-            '<div class="box"><div class="num">'+d.total_days+'</div><div class="lbl">休假总天数</div></div>'+
-            '<div class="box"><div class="num">'+d.used_days+'</div><div class="lbl">已休天数</div></div>'+
-            '<div class="box"><div class="num">'+d.remain_days+'</div><div class="lbl">剩余天数</div></div>'+
+            '<div class="box"><div class="num">'+d.total_days+'</div><div class="lbl">总天数</div></div>'+
+            '<div class="box"><div class="num">'+d.used_days+'</div><div class="lbl">已休</div></div>'+
+            '<div class="box"><div class="num">'+d.remain_days+'</div><div class="lbl">剩余</div></div>'+
           '</div>'+
-          '<div class="list-title">休假记录明细</div>'+
           '<div class="list">'+rows+'</div>'
         );
       })
-      .catch(function(){ showMsg('网络异常，请稍后重试','err'); })
-      .finally(function(){ btn.disabled=false; });
-  });
+      .catch(function(){ showMsg('网络异常'); });
+  }
 })();
 </script>
 </body>
