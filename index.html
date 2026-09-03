@@ -17,20 +17,21 @@
     width: 100%; max-width: 380px;
     background: rgba(255,255,255,0.96);
     border-radius: 20px;
-    padding: 40px 28px;
+    padding: 40px 24px;
     box-shadow: 0 12px 40px rgba(10,77,163,0.35);
   }
-  .field { display:none; }
-  .field.active { display:block; }
-  .field .tag {
+  .step { display:none; }
+  .step.active { display:block; }
+  .step .tag {
     font-size: 15px; font-weight: 700; letter-spacing: 2px; color:#0a4da3;
-    text-align:center; margin-bottom: 12px;
+    text-align:center; margin-bottom: 22px;
   }
-  .field input {
-    width:100%; padding: 16px 0; font-size: 30px; text-align:center; letter-spacing: 12px;
-    border:none; border-bottom: 2px solid #c9dcf3; outline:none; color:#0a4da3; background:transparent;
+  .boxes { display:flex; justify-content:center; gap:12px; }
+  .boxes input {
+    width: 56px; height: 64px; text-align:center; font-size: 30px; color:#0a4da3;
+    border: 2px solid #c9dcf3; border-radius: 12px; outline:none; background:#f4f9ff;
   }
-  .field input:focus { border-bottom-color:#1e90ff; }
+  .boxes input:focus { border-color:#1e90ff; background:#fff; }
   .result { margin-top: 26px; }
   .stat { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
   .stat .box {
@@ -49,17 +50,23 @@
   .empty { text-align:center; color:#9aa7b8; font-size:14px; padding:16px; }
   .msg { text-align:center; font-size:13px; margin-top:14px; min-height:18px; }
   .msg.err { color:#e0555d; }
+  .back { text-align:center; margin-top:16px; }
+  .back button {
+    background:none; border:1px solid #c9dcf3; color:#7a8ba6; border-radius:8px;
+    padding:8px 20px; font-size:13px; cursor:pointer;
+  }
+  .back button:active { background:#f4f9ff; }
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="field active" id="f-id">
+  <div class="step active" id="s-id">
     <div class="tag">ID</div>
-    <input id="idc" inputmode="numeric" maxlength="4" autocomplete="off">
+    <div class="boxes" id="b-id"></div>
   </div>
-  <div class="field" id="f-phone">
+  <div class="step" id="s-phone">
     <div class="tag">MB</div>
-    <input id="phone" inputmode="numeric" maxlength="4" autocomplete="off">
+    <div class="boxes" id="b-phone"></div>
   </div>
   <div class="msg" id="msg"></div>
   <div class="result" id="result" style="display:none"></div>
@@ -67,34 +74,48 @@
 
 <script>
 (function(){
-  var idc=document.getElementById('idc');
-  var phone=document.getElementById('phone');
-  var fId=document.getElementById('f-id');
-  var fPhone=document.getElementById('f-phone');
   var msg=document.getElementById('msg');
   var result=document.getElementById('result');
-  var idcVal='';
+  var sId=document.getElementById('s-id');
+  var sPhone=document.getElementById('s-phone');
+  var idcVal='', phoneVal='';
+
+  function buildBoxes(container){
+    var inputs=[];
+    for(var i=0;i<4;i++){
+      (function(idx){
+        var inp=document.createElement('input');
+        inp.type='text'; inp.inputMode='numeric'; inp.maxLength=1; inp.autocomplete='off';
+        inp.addEventListener('input',function(){
+          this.value=this.value.replace(/\D/g,'').slice(0,1);
+          if(this.value && idx<3){ inputs[idx+1].focus(); }
+          sync(container, inputs);
+        });
+        inp.addEventListener('keydown',function(e){
+          if(e.key==='Backspace' && !this.value && idx>0){ inputs[idx-1].focus(); inputs[idx-1].value=''; sync(container, inputs); }
+        });
+        inp.addEventListener('focus',function(){ this.select(); });
+        container.appendChild(inp);
+        inputs.push(inp);
+      })(i);
+    }
+    return inputs;
+  }
+
+  function sync(container, inputs){
+    var val='';
+    inputs.forEach(function(inp){ val+=inp.value; });
+    if(container.id==='b-id'){
+      idcVal=val;
+      if(val.length===4){ sId.classList.remove('active'); sPhone.classList.add('active'); setTimeout(function(){ document.querySelectorAll('#b-phone input')[0].focus(); }, 50); }
+    } else {
+      phoneVal=val;
+      if(val.length===4){ doQuery(idcVal, val); }
+    }
+  }
 
   function showMsg(t){ msg.textContent=t; msg.className='msg '+(t?'err':''); }
   function showResult(html){ result.innerHTML=html; result.style.display='block'; }
-  function clean(){ showMsg(''); result.style.display='none'; }
-
-  idc.addEventListener('input',function(){
-    idc.value=idc.value.replace(/\D/g,'').slice(0,4);
-    clean();
-    if(idc.value.length===4){
-      idcVal=idc.value;
-      fId.classList.remove('active');
-      fPhone.classList.add('active');
-      phone.focus();
-    }
-  });
-
-  phone.addEventListener('input',function(){
-    phone.value=phone.value.replace(/\D/g,'').slice(0,4);
-    clean();
-    if(phone.value.length===4){ doQuery(idcVal, phone.value); }
-  });
 
   function doQuery(v1, v2){
     fetch('/api/query?idc='+encodeURIComponent(v1)+'&phone='+encodeURIComponent(v2))
@@ -109,6 +130,7 @@
             rows+='<div class="row"><span>'+l.leave_date+(l.note?' · '+l.note:'')+'</span><span class="d">'+l.days+' 天</span></div>';
           });
         }
+        sId.classList.remove('active'); sPhone.classList.remove('active');
         showResult(
           '<div class="greet">'+d.name+'</div>'+
           '<div class="stat">'+
@@ -116,7 +138,8 @@
             '<div class="box"><div class="num">'+d.used_days+'</div><div class="lbl">已休</div></div>'+
             '<div class="box"><div class="num">'+d.remain_days+'</div><div class="lbl">剩余</div></div>'+
           '</div>'+
-          '<div class="list">'+rows+'</div>'
+          '<div class="list">'+rows+'</div>'+
+          '<div class="back"><button onclick="location.reload()">返回</button></div>'
         );
       })
       .catch(function(){ showMsg('网络异常'); });
