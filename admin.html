@@ -165,7 +165,6 @@
     loginView.style.display = 'none';
     adminView.style.display = 'block';
     loadStaff();
-    loadLeaveSelect();
   }
 
   function loadStaff(){
@@ -186,6 +185,8 @@
       });
       html += '</table>';
       staffList.innerHTML = html;
+      // 员工数据加载完成后，再填充添加休假的下拉框
+      fillLeaveSelect();
     });
   }
 
@@ -215,22 +216,20 @@
         if(r.ok){
           document.getElementById('new-name').value='';
           document.getElementById('new-total').value='';
-          loadStaff(); loadLeaveSelect();
+          loadStaff();
         }
       });
   });
 
-  // 加载休假员工下拉
-  function loadLeaveSelect(){
+  // 填充添加休假的下拉框（在员工数据加载完成后调用）
+  function fillLeaveSelect(){
     var sel = document.getElementById('leave-name');
-    var cur = sel.value;
     sel.innerHTML = '';
     staffData.forEach(function(s){
       var o = document.createElement('option');
       o.value = s.name; o.textContent = s.name;
       sel.appendChild(o);
     });
-    if(cur) sel.value = cur;
   }
 
   // 添加休假
