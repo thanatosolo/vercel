@@ -29,16 +29,21 @@
     background:#3a3f47; color:#fff; font-weight:600;
   }
   button:active { opacity:0.85; }
-  button.mini { padding:5px 10px; font-size:12px; background:#eef0f3; color:#4a5261; }
+  button.mini { padding:6px 10px; font-size:12px; background:#eef0f3; color:#4a5261; width:100%; }
   button.del { background:#fbecec; color:#c0392b; }
   button.green { background:#2f6e49; }
   .msg { text-align:center; font-size:13px; margin-top:8px; min-height:16px; color:#d64545; }
   .msg.ok { color:#2f6e49; }
   table { width:100%; border-collapse:collapse; font-size:13px; }
-  th, td { padding:8px 6px; border-bottom:1px solid #eef0f3; text-align:left; color:#3a3f47; }
-  th { color:#8a919b; font-weight:600; }
-  td.num { color:#22262c; font-weight:600; }
-  td.remain { color:#2f6e49; font-weight:700; }
+  th, td { padding:8px 6px; border-bottom:1px solid #eef0f3; text-align:left; color:#3a3f47; vertical-align:middle; }
+  th { color:#8a919b; font-weight:600; white-space:nowrap; }
+  th.sortable { cursor:pointer; user-select:none; }
+  th.sortable:hover { color:#3a3f47; }
+  th .arrow { font-size:10px; color:#2f6e49; }
+  td.num { color:#22262c; font-weight:600; white-space:nowrap; }
+  td.remain { color:#2f6e49; font-weight:700; white-space:nowrap; }
+  td.ops { width:80px; }
+  .ops-col { display:flex; flex-direction:column; gap:6px; }
   .form-row { display:flex; gap:8px; flex-wrap:wrap; }
   .form-row input, .form-row select { flex:1 1 120px; margin-bottom:10px; }
   .form-row button { flex:0 0 auto; }
@@ -66,7 +71,7 @@
   <div id="admin-view" style="display:none;">
     <div class="head">
       <div class="title">休假系统管理</div>
-      <button class="mini" id="logout">退出</button>
+      <button class="mini" id="logout" style="width:auto;">退出</button>
     </div>
 
     <div class="card">
@@ -115,6 +120,8 @@
   var leavesList = document.getElementById('leaves-list');
   var leavesTitle = document.getElementById('leaves-title');
   var staffData = [];
+  var sortKey = 'name';
+  var sortDir = 1; // 1=升序 -1=降序
 
   // 员工列表折叠
   var staffOpen = true;
@@ -167,30 +174,72 @@
     loadStaff();
   }
 
+  function sortedStaff(){
+    var arr = staffData.slice();
+    arr.sort(function(a, b){
+      var va, vb;
+      if(sortKey === 'name'){
+        va = a.name; vb = b.name;
+        return va.localeCompare(vb, 'zh-Hans-CN') * sortDir;
+      }
+      va = Number(a[sortKey]); vb = Number(b[sortKey]);
+      return (va - vb) * sortDir;
+    });
+    return arr;
+  }
+
+  function arrowFor(k){
+    if(sortKey !== k) return '<span class="arrow">⇅</span>';
+    return sortDir === 1 ? '<span class="arrow">▲</span>' : '<span class="arrow">▼</span>';
+  }
+
+  function renderStaff(){
+    var arr = sortedStaff();
+    var html = '<table>' +
+      '<tr>' +
+        '<th class="sortable" data-key="name">姓名 ' + arrowFor('name') + '</th>' +
+        '<th class="sortable" data-key="total_days">总天数 ' + arrowFor('total_days') + '</th>' +
+        '<th class="sortable" data-key="used_days">已休 ' + arrowFor('used_days') + '</th>' +
+        '<th class="sortable" data-key="remain_days">剩余 ' + arrowFor('remain_days') + '</th>' +
+        '<th>操作</th>' +
+      '</tr>';
+    arr.forEach(function(s){
+      html += '<tr>' +
+        '<td>' + s.name + '</td>' +
+        '<td class="num">' + s.total_days + '</td>' +
+        '<td class="num">' + s.used_days + '</td>' +
+        '<td class="remain">' + s.remain_days + '</td>' +
+        '<td class="ops"><div class="ops-col">' +
+          '<button class="mini" data-act="total" data-name="'+s.name+'">改天数</button>' +
+          '<button class="mini" data-act="leaves" data-name="'+s.name+'">看休假</button>' +
+        '</div></td>' +
+        '</tr>';
+    });
+    html += '</table>';
+    staffList.innerHTML = html;
+  }
+
   function loadStaff(){
     staffList.innerHTML = '<div class="empty">加载中...</div>';
     api('/api/admin/staff').then(function(r){
       if(!r.ok){ staffList.innerHTML = '<div class="empty">' + (r.data.error||'加载失败') + '</div>'; return; }
       staffData = r.data.staff;
-      var html = '<table><tr><th>姓名</th><th>总天数</th><th>已休</th><th>剩余</th><th>操作</th></tr>';
-      staffData.forEach(function(s){
-        html += '<tr>' +
-          '<td>' + s.name + '</td>' +
-          '<td class="num">' + s.total_days + '</td>' +
-          '<td class="num">' + s.used_days + '</td>' +
-          '<td class="remain">' + s.remain_days + '</td>' +
-          '<td><button class="mini" data-act="total" data-name="'+s.name+'">改天数</button> ' +
-          '<button class="mini" data-act="leaves" data-name="'+s.name+'">看休假</button></td>' +
-          '</tr>';
-      });
-      html += '</table>';
-      staffList.innerHTML = html;
-      // 员工数据加载完成后，再填充添加休假的下拉框
+      renderStaff();
       fillLeaveSelect();
     });
   }
 
-  // 员工列表操作委托
+  // 表头排序
+  staffList.addEventListener('click', function(e){
+    var th = e.target.closest('th.sortable');
+    if(!th) return;
+    var k = th.getAttribute('data-key');
+    if(sortKey === k){ sortDir *= -1; }
+    else { sortKey = k; sortDir = 1; }
+    renderStaff();
+  });
+
+  // 员工操作
   staffList.addEventListener('click', function(e){
     var btn = e.target.closest('button[data-act]');
     if(!btn) return;
@@ -221,7 +270,7 @@
       });
   });
 
-  // 填充添加休假的下拉框（在员工数据加载完成后调用）
+  // 填充添加休假下拉框（员工数据加载完成后调用）
   function fillLeaveSelect(){
     var sel = document.getElementById('leave-name');
     sel.innerHTML = '';
