@@ -62,11 +62,21 @@
 <div class="card">
   <div class="step active" id="s-id">
     <div class="tag">ID</div>
-    <div class="boxes" id="b-id"></div>
+    <div class="boxes">
+      <input id="i0" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+      <input id="i1" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+      <input id="i2" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+      <input id="i3" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+    </div>
   </div>
   <div class="step" id="s-phone">
     <div class="tag">MB</div>
-    <div class="boxes" id="b-phone"></div>
+    <div class="boxes">
+      <input id="p0" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+      <input id="p1" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+      <input id="p2" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+      <input id="p3" type="text" inputmode="numeric" maxlength="1" autocomplete="off">
+    </div>
   </div>
   <div class="msg" id="msg"></div>
   <div class="result" id="result" style="display:none"></div>
@@ -80,39 +90,39 @@
   var sPhone=document.getElementById('s-phone');
   var idcVal='', phoneVal='';
 
-  function buildBoxes(container){
-    var inputs=[];
-    for(var i=0;i<4;i++){
-      (function(idx){
-        var inp=document.createElement('input');
-        inp.type='text'; inp.inputMode='numeric'; inp.maxLength=1; inp.autocomplete='off';
-        inp.addEventListener('input',function(){
-          this.value=this.value.replace(/\D/g,'').slice(0,1);
-          if(this.value && idx<3){ inputs[idx+1].focus(); }
-          sync(container, inputs);
-        });
-        inp.addEventListener('keydown',function(e){
-          if(e.key==='Backspace' && !this.value && idx>0){ inputs[idx-1].focus(); inputs[idx-1].value=''; sync(container, inputs); }
-        });
-        inp.addEventListener('focus',function(){ this.select(); });
-        container.appendChild(inp);
-        inputs.push(inp);
-      })(i);
-    }
-    return inputs;
+  function bind(ids, onComplete){
+    var inputs = ids.map(function(id){ return document.getElementById(id); });
+    inputs.forEach(function(inp, idx){
+      inp.addEventListener('input', function(){
+        this.value = this.value.replace(/\D/g,'').slice(0,1);
+        if(this.value && idx<3){ inputs[idx+1].focus(); }
+        var val = inputs.map(function(x){ return x.value; }).join('');
+        onComplete(val);
+      });
+      inp.addEventListener('keydown', function(e){
+        if(e.key === 'Backspace' && !this.value && idx>0){
+          inputs[idx-1].focus(); inputs[idx-1].value='';
+          onComplete(inputs.map(function(x){ return x.value; }).join(''));
+        }
+      });
+      inp.addEventListener('focus', function(){ this.select(); });
+    });
+    inputs[0].focus();
   }
 
-  function sync(container, inputs){
-    var val='';
-    inputs.forEach(function(inp){ val+=inp.value; });
-    if(container.id==='b-id'){
-      idcVal=val;
-      if(val.length===4){ sId.classList.remove('active'); sPhone.classList.add('active'); setTimeout(function(){ document.querySelectorAll('#b-phone input')[0].focus(); }, 50); }
-    } else {
-      phoneVal=val;
-      if(val.length===4){ doQuery(idcVal, val); }
+  bind(['i0','i1','i2','i3'], function(val){
+    idcVal = val;
+    if(val.length === 4){
+      sId.classList.remove('active');
+      sPhone.classList.add('active');
+      setTimeout(function(){ document.getElementById('p0').focus(); }, 50);
     }
-  }
+  });
+
+  bind(['p0','p1','p2','p3'], function(val){
+    phoneVal = val;
+    if(val.length === 4){ doQuery(idcVal, val); }
+  });
 
   function showMsg(t){ msg.textContent=t; msg.className='msg '+(t?'err':''); }
   function showResult(html){ result.innerHTML=html; result.style.display='block'; }
