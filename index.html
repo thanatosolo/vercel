@@ -9,54 +9,55 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
     min-height: 100vh;
-    background: linear-gradient(160deg, #0a4da3 0%, #1e90ff 55%, #7cc7ff 100%);
+    background: #f2f3f5;
     display: flex; align-items: center; justify-content: center;
     padding: 16px;
   }
   .card {
     width: 100%; max-width: 380px;
-    background: rgba(255,255,255,0.96);
-    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
     padding: 40px 24px;
-    box-shadow: 0 12px 40px rgba(10,77,163,0.35);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
   }
   .step { display:none; }
   .step.active { display:block; }
   .step .tag {
-    font-size: 15px; font-weight: 700; letter-spacing: 2px; color:#0a4da3;
+    font-size: 15px; font-weight: 700; letter-spacing: 2px; color: #3a3f47;
     text-align:center; margin-bottom: 22px;
   }
   .boxes { display:flex; justify-content:center; gap:12px; }
   .boxes input {
-    width: 56px; height: 64px; text-align:center; font-size: 30px; color:#0a4da3;
-    border: 2px solid #c9dcf3; border-radius: 12px; outline:none; background:#f4f9ff;
+    width: 56px; height: 64px; text-align:center; font-size: 30px; color: #3a3f47;
+    border: 2px solid #d6dae0; border-radius: 10px; outline:none; background: #f7f8fa;
   }
-  .boxes input:focus { border-color:#1e90ff; background:#fff; }
-  .boxes input.err { border-color:#e0555d; }
+  .boxes input:focus { border-color: #6b7280; background: #fff; }
+  .boxes input.err { border-color: #d64545; }
   .result { margin-top: 26px; }
   .stat { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
   .stat .box {
-    flex:1 1 90px; background:#f4f9ff; border-radius:12px; padding:14px 8px; text-align:center;
+    flex:1 1 90px; background: #f5f6f8; border:1px solid #eceef1; border-radius:10px; padding:14px 8px; text-align:center;
   }
-  .stat .box .num { font-size: 24px; font-weight:700; color:#0a4da3; }
-  .stat .box .lbl { font-size: 12px; color:#7a8ba6; margin-top:4px; }
-  .greet { text-align:center; font-size:17px; font-weight:600; color:#2b3a55; margin-bottom:16px; }
-  .list { border:1px solid #e3eefb; border-radius:10px; overflow:hidden; }
+  .stat .box .num { font-size: 24px; font-weight:700; color: #22262c; }
+  .stat .box .lbl { font-size: 12px; color: #8a919b; margin-top:4px; }
+  .greet { text-align:center; font-size:17px; font-weight:600; color: #2c3038; margin-bottom:16px; }
+  .list { border:1px solid #e8eaee; border-radius:10px; overflow:hidden; }
   .row {
-    display:flex; justify-content:space-between; padding:11px 14px; font-size:14px; color:#3a4a66;
-    border-bottom:1px solid #eef4fb;
+    display:flex; justify-content:space-between; padding:11px 14px; font-size:14px; color: #4a5261;
+    border-bottom:1px solid #f0f1f4;
   }
   .row:last-child { border-bottom:none; }
-  .row .d { color:#0a4da3; font-weight:600; }
-  .empty { text-align:center; color:#9aa7b8; font-size:14px; padding:16px; }
+  .row .d { color: #2c6e49; font-weight:600; }
+  .empty { text-align:center; color: #9aa2ad; font-size:14px; padding:16px; }
   .msg { text-align:center; font-size:13px; margin-top:14px; min-height:18px; }
-  .msg.err { color:#e0555d; }
+  .msg.err { color: #d64545; }
   .back { text-align:center; margin-top:16px; }
   .back button {
-    background:none; border:1px solid #c9dcf3; color:#7a8ba6; border-radius:8px;
+    background:none; border:1px solid #d6dae0; color: #6b7280; border-radius:8px;
     padding:8px 20px; font-size:13px; cursor:pointer;
   }
-  .back button:active { background:#f4f9ff; }
+  .back button:active { background: #f7f8fa; }
 </style>
 </head>
 <body>
@@ -137,12 +138,15 @@
           }
         })
         .catch(function(){ showMsg('网络异常'); clearIdBoxes(); });
+    } else {
+      showMsg('');
     }
   });
 
   bind(['p0','p1','p2','p3'], function(val){
     phoneVal = val;
     if(val.length === 4){ doQuery(idcVal, val); }
+    else { showMsg(''); }
   });
 
   function doQuery(v1, v2){
@@ -150,6 +154,7 @@
       .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,data:d}; }); })
       .then(function(res){
         if(!res.ok){ showMsg(res.data.error||'查询失败'); return; }
+        showMsg('');
         var d=res.data;
         var rows='';
         if(!d.leaves || d.leaves.length===0){ rows='<div class="empty">暂无记录</div>'; }
