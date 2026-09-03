@@ -3,13 +3,21 @@ const crypto = require('crypto');
 function sign(secret, hour) {
   return crypto.createHmac('sha256', secret).update(String(hour)).digest('hex');
 }
+function parseBody(req) {
+  const raw = req.body;
+  if (raw == null) return {};
+  if (typeof raw === 'string') { try { return JSON.parse(raw); } catch (e) { return {}; } }
+  if (Buffer.isBuffer(raw)) { try { return JSON.parse(raw.toString('utf8')); } catch (e) { return {}; } }
+  if (typeof raw === 'object') return raw;
+  return {};
+}
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
   try {
-    const body = JSON.parse(req.body || '{}');
+    const body = parseBody(req);
     const u = process.env.ADMIN_USERNAME || '';
     const p = process.env.ADMIN_PASSWORD || '';
     if (body.username === u && body.password === p) {

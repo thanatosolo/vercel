@@ -11,6 +11,14 @@ function ok(req) {
   const hour = Math.floor(Date.now() / 3600000);
   return token === sign(secret, hour) || token === sign(secret, hour - 1);
 }
+function parseBody(req) {
+  const raw = req.body;
+  if (raw == null) return {};
+  if (typeof raw === 'string') { try { return JSON.parse(raw); } catch (e) { return {}; } }
+  if (Buffer.isBuffer(raw)) { try { return JSON.parse(raw.toString('utf8')); } catch (e) { return {}; } }
+  if (typeof raw === 'object') return raw;
+  return {};
+}
 
 module.exports = async function handler(req, res) {
   if (!ok(req)) return res.status(401).json({ error: '未授权' });
@@ -32,7 +40,7 @@ module.exports = async function handler(req, res) {
       })) });
     }
     if (req.method === 'POST') {
-      const body = JSON.parse(req.body || '{}');
+      const body = parseBody(req);
       if (body.action === 'total') {
         if (!body.name || body.total_days == null) return res.status(400).json({ error: '参数缺失' });
         await sql`UPDATE staff_info SET total_days = ${Number(body.total_days)} WHERE name = ${body.name}`;
