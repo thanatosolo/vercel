@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
   try {
     const sql = neon(DATABASE_URL);
     const staff = await sql`
-      SELECT name, total_days, remain_days
+      SELECT name, total_days
       FROM staff_info
       WHERE id_card_last4 = ${idc} AND phone_last4 = ${phone}
       LIMIT 1
@@ -35,12 +35,15 @@ module.exports = async function handler(req, res) {
       ORDER BY leave_date ASC
     `;
 
+    const totalDays = Number(person.total_days);
     const usedDays = leaves.reduce((s, l) => s + Number(l.days), 0);
+    const remainDays = totalDays - usedDays;
+
     res.status(200).json({
       name: person.name,
-      total_days: Number(person.total_days),
-      remain_days: Number(person.remain_days),
-      used_days: usedDays,
+      total_days: Number(totalDays.toFixed(2)),
+      remain_days: Number(remainDays.toFixed(2)),
+      used_days: Number(usedDays.toFixed(2)),
       leaves: leaves.map(l => ({ leave_date: l.leave_date, days: Number(l.days), note: l.note || '' }))
     });
   } catch (err) {
